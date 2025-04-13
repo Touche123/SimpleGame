@@ -11,12 +11,17 @@
                 "src/main.c",
                 "src/list.c",
                 "src/shader.c",
+                "src/renderer_opengl.c",
+                "src/mesh.c",
+                "src/model.c",
+                "src/scene.c",
                 "src/io.c",
-                "-I/deps/GLFW",        // Lägg till sökvägen för GLFW headerfiler
+                "src/camera.c",
+                "-I/deps/GLFW", // Lägg till sökvägen för GLFW headerfiler
                 "-I/KHR",
-                "-L/deps/GLFW",            // Lägg till sökvägen för GLFW bibliotek
-                "-lglfw3dll",                         // Länka mot GLFW
-                "-lopengl32",                           // Lägg till OpenGL-länkning (beroende på system)
+                "-L/deps/GLFW", // Lägg till sökvägen för GLFW bibliotek
+                "-lglfw3dll", // Länka mot GLFW
+                "-lopengl32", // Lägg till OpenGL-länkning (beroende på system)
                 "-nodefaultlibs",
                 "-o",
                 "main"
@@ -25,7 +30,9 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": ["$gcc"],
+            "problemMatcher": [
+                "$gcc"
+            ],
             "detail": "Generated task for Clang build"
         }
     ]
