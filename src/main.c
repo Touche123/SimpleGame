@@ -89,11 +89,15 @@ int main() {
         fprintf(stderr, "Could not initialize renderer.\n");
         return -1;
     }
-    Shader shader = {0}; 
-    shader.vertex_shader_filename = "res/shaders/vertex.glsl";
-    shader.fragment_shader_filename = "res/shaders/fragment.glsl";
-        
-    shader.id = shader_compile(shader.vertex_shader_filename, shader.fragment_shader_filename);
+
+    ShaderAsset* shaderAsset = asset_get_shader("default");
+    printf("Shader asset id: %i\n", shaderAsset->shader.id);
+
+    //Shader shader = {0}; 
+    //shader.vertex_shader_filename = "res/shaders/vertex.glsl";
+    //shader.fragment_shader_filename = "res/shaders/fragment.glsl";
+    //    
+    //shader.id = shader_compile(shader.vertex_shader_filename, shader.fragment_shader_filename);
 
     Scene scene = {0};
     scene_init(&scene);
@@ -141,7 +145,8 @@ int main() {
        
         if (platform_watch_event(file_changed)) {
             printf("File changed! Reloading shader...\n");
-            shader_recompile(&shader);
+            printf("Shader id: %i", shaderAsset->shader.id);
+            shader_recompile(&shaderAsset->shader);
         }
 
         if (platform_watch_event(file_material_changed)) {
@@ -153,7 +158,7 @@ int main() {
                     
                 }
             }
-            shader_recompile(&shader);
+            shader_recompile(&shaderAsset->shader);
         }
 
         if (keys[GLFW_KEY_W])
@@ -169,7 +174,7 @@ int main() {
         if (keys[GLFW_KEY_Q] || keys[GLFW_KEY_LEFT_CONTROL])
             camera_process_keyboard(&camera, CAMERA_DOWN, frame_data.delta_time);
         if (keys[GLFW_KEY_T])
-            shader_recompile(&shader);
+            shader_recompile(&shaderAsset->shader);
         // camera_update(&camera, delta_time);  // Update camera position and orientation
         float center[3] = {
             camera.position[0] + camera.front[0],
@@ -180,15 +185,16 @@ int main() {
         //   render
         //   ------
         renderer_opengl_prepare_frame();
+        // TODO: This is make it so the shader id = 0. Why?
+        ShaderAsset* testAsset = asset_get_shader("default");
+        glUseProgram(testAsset->shader.id);
 
-        glUseProgram(shader.id);
-
-        GLuint loc_model = glGetUniformLocation(shader.id, "model");
-        GLuint loc_view = glGetUniformLocation(shader.id, "view");
-        GLuint loc_proj = glGetUniformLocation(shader.id, "projection");
-        GLuint loc_lightDir = glGetUniformLocation(shader.id, "lightDir");
-        GLuint loc_lightColor = glGetUniformLocation(shader.id, "lightColor");
-        GLuint loc_objectColor = glGetUniformLocation(shader.id, "objectColor");
+        GLuint loc_model = glGetUniformLocation(shaderAsset->shader.id, "model");
+        GLuint loc_view = glGetUniformLocation(shaderAsset->shader.id, "view");
+        GLuint loc_proj = glGetUniformLocation(shaderAsset->shader.id, "projection");
+        GLuint loc_lightDir = glGetUniformLocation(shaderAsset->shader.id, "lightDir");
+        GLuint loc_lightColor = glGetUniformLocation(shaderAsset->shader.id, "lightColor");
+        GLuint loc_objectColor = glGetUniformLocation(shaderAsset->shader.id, "objectColor");
         glUniform3fv(loc_lightDir, 1, light_direction);
         glUniform3fv(loc_lightColor, 1, light_color);
 

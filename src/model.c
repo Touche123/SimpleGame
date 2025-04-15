@@ -12,10 +12,14 @@ void model_save(Model *model, const char *filename) {
 }
 
 bool model_save_material_to_file(const char *filename, const Material* material) {
+    printf("Saving material to file..\n");
     FILE *f; 
-
+       
     fopen_s(&f, filename, "w");
-    if (!f) return false;
+    if (!f) {
+        printf("Failed to save material to file: %s", filename);
+        return false;
+    }
 
     fprintf(f, "base_color = %f, %f, %f, %f\n",
             material->base_color_factor[0],
@@ -47,6 +51,7 @@ Material convert_from_cgltf(const cgltf_material* src) {
 }
 
 bool model_load_cached_material_from_file(const char* filename, Material* material) {
+    printf("Loading cached material...\n");
     FILE *f;
     fopen_s(&f, "res/Material.001", "r");
     if (!f) {
@@ -98,8 +103,9 @@ void model_load(Model *model, const char *filename) {
             cgltf_material *material = &data->materials[m];
             if (!model_load_cached_material_from_file(
                         filename, 
-                        &model->meshes[i].material))
+                        &model->meshes[i].material)) {
                 model->meshes[i].material = convert_from_cgltf(material);
+            }
         }
 
         size_t vertex_count = prim->attributes[0].data->count;
