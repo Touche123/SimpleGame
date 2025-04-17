@@ -8,6 +8,7 @@ clang -g ^
     src/renderer_opengl.c ^
     src/mesh.c ^
     src/platform.c ^
+    src/asset_manager.c ^
     src/math.c ^
     src/model.c ^
     src/scene.c ^

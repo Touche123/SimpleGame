@@ -72,6 +72,7 @@ unsigned int shader_compile(const char* vertex_filename, const char* fragment_fi
 }
 
 void shader_recompile(Shader* shader) {
+    printf("Shader Recompile: %s, %s", shader->vertex_shader_filename, shader->fragment_shader_filename);
     unsigned int reloaded_program = 
         shader_compile(shader->vertex_shader_filename, shader->fragment_shader_filename);
     if (reloaded_program) {
