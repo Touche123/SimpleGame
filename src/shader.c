@@ -73,6 +73,10 @@ void shader_recompile(Shader* shader) {
     }
 }
 
+void shader_uniform1i(Shader* shader, const char* name, int value) {
+    glUniform1i(glGetUniformLocation(shader->id, name), value);
+}
+
 void shader_uniform1f(Shader* shader, const char* name, float value) {
     glUniform1f(glGetUniformLocation(shader->id, name), value);
 }

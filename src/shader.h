@@ -12,6 +12,7 @@ unsigned int shader_compile(const char* vertex_source, const char* fragment_sour
 char* shader_read_file(const char* filename);
 void shader_recompile(Shader* shader);
 void shader_use(Shader* shader);
+void shader_uniform1i(Shader* shader, const char* name, int value);
 void shader_uniform1f(Shader* shader, const char* name, float value);
 void shader_uniform2f(Shader* shader, const char* name, float value);
 void shader_uniform3f(Shader* shader, const char* name, float value);

@@ -7,6 +7,7 @@
         "stdio.h": "c",
         "os_windows.h": "c",
         "material.h": "c",
-        "utility": "c"
+        "utility": "c",
+        "camera.h": "c"
     }
 }
