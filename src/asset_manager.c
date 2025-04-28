@@ -1,9 +1,10 @@
 #include "asset_manager.h"
+
 #include <sys/stat.h>
 
 #define MAX_ASSETS 128
 
-typedef struct MaterialAsset{
+typedef struct MaterialAsset {
     char name[128];
     Material material;
 } MaterialAsset;
@@ -22,6 +23,9 @@ static int shader_asset_count = 0;
 static TextureAsset texture_assets[MAX_ASSETS];
 static int texture_asset_count = 0;
 
+static ModelAsset model_assets[MAX_ASSETS];
+static int model_asset_count = 0;
+
 static time_t asset_get_file_timestamp(const char* path) {
     struct stat attr;
     if (stat(path, &attr) == 0) {
@@ -31,7 +35,6 @@ static time_t asset_get_file_timestamp(const char* path) {
 }
 
 void asset_manager_init(void) {
-    
 }
 
 void asset_manager_shutdown(void) {
@@ -55,14 +58,31 @@ Material* asset_get_material(const char* name) {
     char path[256];
     snprintf(path, sizeof(path), "materials/%s.mat", name);
 
-
-    //if (!asset_material_load(path, &asset->material)) {
-    //    printf("[Material] Missing: %s (using default)\n", path);
-    //} else {
+    // if (!asset_material_load(path, &asset->material)) {
+    //     printf("[Material] Missing: %s (using default)\n", path);
+    // } else {
 
     //}
 
     return &asset->material;
+}
+
+ModelAsset* asset_get_model(const char* name) {
+    for (int i = 0; i < model_asset_count; ++i) {
+        if (strcmp(model_assets[i].name, name) == 0) {
+            return &model_assets[i];
+        }
+    }
+
+    if (model_asset_count >= MAX_ASSETS) return NULL;
+
+    ModelAsset* asset = &model_assets[model_asset_count++];
+    strncpy(asset->name, name, sizeof(asset->name));
+    asset->name[sizeof(asset->name) - 1] = '\0';
+
+    model_load(&asset->model, name);
+
+    return asset;
 }
 
 ShaderAsset* asset_get_shader(const char* name) {
@@ -83,21 +103,21 @@ ShaderAsset* asset_get_shader(const char* name) {
 
     asset->vs_timestamp = asset_get_file_timestamp(asset->vs_path);
     asset->fs_timestamp = asset_get_file_timestamp(asset->fs_path);
-    
+
     printf("vs path: %s\n", asset->vs_path);
     printf("fs path: %s\n", asset->fs_path);
     char* vss_path = shader_read_file(asset->vs_path);
     char* fss_path = shader_read_file(asset->fs_path);
     asset->shader.id = shader_compile(asset->vs_path, asset->fs_path);
-    
+
     asset->shader.vertex_shader_filename = asset->vs_path;
     asset->shader.fragment_shader_filename = asset->fs_path;
-    //if (!shader_load(&asset->shader, asset->vs_path, asset->fs_path)) {
-    //    printf("[Shader] Failed to load %s\n", name);
-    //} {
-    //    printf("[Shader] Loaded: %s\n", name);
-    //}
-    
+    // if (!shader_load(&asset->shader, asset->vs_path, asset->fs_path)) {
+    //     printf("[Shader] Failed to load %s\n", name);
+    // } {
+    //     printf("[Shader] Loaded: %s\n", name);
+    // }
+
     return asset;
 }
 
@@ -106,4 +126,3 @@ void asset_shader_load(void) {
 
 void asset_material_load(void) {
 }
-

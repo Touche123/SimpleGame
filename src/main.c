@@ -1,5 +1,4 @@
 #include <cglm/cglm.h>
-#include <mmsystem.h>
 
 #include "asset_manager.h"
 #include "camera.h"
@@ -85,13 +84,11 @@ int game_main() {
     Scene scene = {0};
     scene_init(&scene);
 
-    Model my_planemodel = {0};
-    model_load(&my_planemodel, "res/models/plane.gltf");
-    Model model_barrel = {0};
-    model_load(&model_barrel, "res/models/barrel/Barrel.gltf");
+    ModelAsset* modelAsset_plane = asset_get_model("res/models/plane.gltf");
+    ModelAsset* modelAsset_barrel = asset_get_model("res/models/barrel/Barrel.gltf");
 
-    Entity* test_entity2 = scene_create_entity(&scene, &my_planemodel);
-    Entity* test_entity5 = scene_create_entity(&scene, &model_barrel);
+    Entity* test_entity2 = scene_create_entity(&scene, &modelAsset_plane->model);
+    Entity* test_entity5 = scene_create_entity(&scene, &modelAsset_barrel->model);
 
     mat4 view, projection;
 
