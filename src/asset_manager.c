@@ -97,7 +97,7 @@ ShaderAsset* asset_get_shader(const char* name) {
     //} {
     //    printf("[Shader] Loaded: %s\n", name);
     //}
-
+    
     return asset;
 }
 

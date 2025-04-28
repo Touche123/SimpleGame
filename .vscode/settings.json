@@ -4,6 +4,9 @@
         "stddef.h": "c",
         "cgltf.h": "c",
         "cmath": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "os_windows.h": "c",
+        "material.h": "c",
+        "utility": "c"
     }
 }

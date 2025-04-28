@@ -3,40 +3,28 @@
 #include <stdio.h>
 
 #include "glad.h"
+#include "os/os_windows.h"
 
 char* shader_read_file(const char* filename) {
-    FILE* file; 
-    fopen_s(&file, filename, "rb");
-    if (!file) {
-        fprintf(stderr, "Kunde inte öppna fil: %s\n", filename);
-        return NULL;
-    }
-    fseek(file, 0, SEEK_END);
-    long length = ftell(file);
-    rewind(file);
-
-    char* buffer = malloc(length + 1);
-    if (!buffer) {
-        fprintf(stderr, "Kunde inte allokera minne för fil: %s\n", filename);
-        fclose(file);
-        return NULL;
+    void* data = NULL;
+    uptr size = 0;
+    if (os_file_read_all(filename, &data, &size)) {
+        return (char*)data;
     }
 
-    fread(buffer, 1, length, file);
-    buffer[length] = '\0';
-    fclose(file);
-    return buffer;
+    return NULL;
 }
 
 unsigned int shader_compile(const char* vertex_filename, const char* fragment_filename) {
     const char* vertex_src = shader_read_file(vertex_filename);
     const char* fragment_src = shader_read_file(fragment_filename);
 
-    unsigned int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    u32 vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_src, NULL);
+    // free((void*)vertex_src);
     glCompileShader(vertex_shader);
     // check for shader compile errors
-    int success;
+    s32 success;
     char infoLog[512];
     glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
     if (!success) {
@@ -45,8 +33,9 @@ unsigned int shader_compile(const char* vertex_filename, const char* fragment_fi
     }
 
     // fragment shader
-    unsigned int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    u32 fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment_shader, 1, &fragment_src, NULL);
+    // free((void*)fragment_src);
     glCompileShader(fragment_shader);
     // check for shader compile errors
     glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
@@ -55,7 +44,7 @@ unsigned int shader_compile(const char* vertex_filename, const char* fragment_fi
         fprintf(stderr, "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n%s\n", infoLog);
     }
     // link shaders
-    unsigned int shader_program = glCreateProgram();
+    u32 shader_program = glCreateProgram();
     glAttachShader(shader_program, vertex_shader);
     glAttachShader(shader_program, fragment_shader);
     glLinkProgram(shader_program);
@@ -68,15 +57,37 @@ unsigned int shader_compile(const char* vertex_filename, const char* fragment_fi
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
 
+    free((void*)vertex_src);
+    free((void*)fragment_src);
+
     return shader_program;
 }
 
 void shader_recompile(Shader* shader) {
     printf("Shader Recompile: %s, %s", shader->vertex_shader_filename, shader->fragment_shader_filename);
-    unsigned int reloaded_program = 
+    unsigned int reloaded_program =
         shader_compile(shader->vertex_shader_filename, shader->fragment_shader_filename);
     if (reloaded_program) {
         glDeleteProgram(shader->id);
         shader->id = reloaded_program;
     }
+}
+
+void shader_uniform1f(Shader* shader, const char* name, float value) {
+    glUniform1f(glGetUniformLocation(shader->id, name), value);
+}
+void shader_uniform2f(Shader* shader, const char* name, float value) {
+    glUniform2f(glGetUniformLocation(shader->id, name), value, value);
+}
+void shader_uniform3f(Shader* shader, const char* name, float value) {
+    glUniform3f(glGetUniformLocation(shader->id, name), value, value, value);
+}
+void shader_uniform3fv(Shader* shader, const char* name, const float* value) {
+    glUniform3fv(glGetUniformLocation(shader->id, name), 1, value);
+}
+void shader_uniformMatrix4fv(Shader* shader, const char* name, const float* value) {
+    glUniformMatrix4fv(glGetUniformLocation(shader->id, name), 1, GL_FALSE, value);
+}
+void shader_use(Shader* shader) {
+    glUseProgram(shader->id);
 }

@@ -1,4 +1,5 @@
 #include "camera.h"
+
 #include "math.h"
 
 void camera_init(Camera* camera, float fov, float aspect_ratio, float near_plane, float far_plane) {
@@ -27,47 +28,9 @@ void camera_init(Camera* camera, float fov, float aspect_ratio, float near_plane
     camera->fov = fov;
 }
 
-void camera_update(Camera* camera, float delta_time) {
-    camera_update_vectors(camera);
-    // // Update camera vectors based on yaw and pitch
-    // float front[3];
-    // front[0] = cosf(camera->yaw * (M_PI / 180.0f)) * cosf(camera->pitch * (M_PI / 180.0f));
-    // front[1] = sinf(camera->pitch * (M_PI / 180.0f));
-    // front[2] = sinf(camera->yaw * (M_PI / 180.0f)) * cosf(camera->pitch * (M_PI / 180.0f));
+void camera_process_keyboard(Camera* camera, Camera_Movement direction, float dt) {
+    float camera_speed = camera->speed * dt;
 
-    // camera->front[0] = front[0];
-    // camera->front[1] = front[1];
-    // camera->front[2] = front[2];
-
-    // // Recalculate the right and up vectors
-    // camera->right[0] = camera->front[1] * camera->world_up[2] - camera->front[2] * camera->world_up[1];
-    // camera->right[1] = camera->front[2] * camera->world_up[0] - camera->front[0] * camera->world_up[2];
-    // camera->right[2] = camera->front[0] * camera->world_up[1] - camera->front[1] * camera->world_up[0];
-
-    // // Normalize the right vector
-    // float length = sqrtf(camera->right[0] * camera->right[0] + camera->right[1] * camera->right[1] + camera->right[2] * camera->right[2]);
-    // if (length > 0.00001f) {
-    //     camera->right[0] /= length;
-    //     camera->right[1] /= length;
-    //     camera->right[2] /= length;
-    // }
-
-    // // Calculate the up vector
-    // camera->up[0] = camera->right[1] * front[2] - camera->right[2] * front[1];
-    // camera->up[1] = camera->right[2] * front[0] - camera->right[0] * front[2];
-    // camera->up[2] = camera->right[0] * front[1] - camera->right[1] * front[0];
-
-    // // Normalize the up vector
-    // length = sqrtf(camera->up[0] * camera->up[0] + camera->up[1] * camera->up[1] + camera->up[2] * camera->up[2]);
-    // if (length > 0.00001f) {
-    //     camera->up[0] /= length;
-    //     camera->up[1] /= length;
-    //     camera->up[2] /= length;
-    // }
-}
-
-void camera_process_keyboard(Camera* camera, Camera_Movement direction, float delta_time) {
-    float camera_speed = 25.0f * delta_time;  // Adjust accordingly
     if (direction == CAMERA_FORWARD) {
         camera->position[0] += camera->front[0] * camera_speed;
         camera->position[1] += camera->front[1] * camera_speed;
@@ -110,13 +73,11 @@ void camera_process_mouse_movement(Camera* camera, float x_offset, float y_offse
     camera->yaw += x_offset;
     camera->pitch += y_offset;
 
-    // Begränsa pitch för att undvika "flip"
     if (camera->pitch > 89.0f)
         camera->pitch = 89.0f;
     if (camera->pitch < -89.0f)
         camera->pitch = -89.0f;
 
-    // Uppdatera kamerans front/right/up vektorer
     camera_update_vectors(camera);
 }
 
@@ -124,17 +85,14 @@ void camera_update_vectors(Camera* camera) {
     float yaw_rad = TO_RADIANS(camera->yaw);
     float pitch_rad = TO_RADIANS(camera->pitch);
 
-    // Uppdatera front-vektor
     camera->front[0] = cosf(yaw_rad) * cosf(pitch_rad);
     camera->front[1] = sinf(pitch_rad);
     camera->front[2] = sinf(yaw_rad) * cosf(pitch_rad);
-    vec3_normalize(camera->front);
+    glm_normalize(camera->front);
 
-    // Right = cross(front, world_up)
-    vec3_cross(camera->front, camera->world_up, camera->right);
-    vec3_normalize(camera->right);
+    glm_cross(camera->front, camera->world_up, camera->right);
+    glm_normalize(camera->right);
 
-    // Up = cross(right, front)
-    vec3_cross(camera->right, camera->front, camera->up);
-    vec3_normalize(camera->up);
+    glm_cross(camera->right, camera->front, camera->up);
+    glm_normalize(camera->up);
 }

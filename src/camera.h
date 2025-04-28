@@ -1,16 +1,19 @@
 #ifndef CAMERA_H
 #define CAMERA_H
-#include "defines.h"
+#include <cglm/cglm.h>
+
+#include "core.h"
 
 typedef struct Camera {
-    float position[3];
-    float front[3];
-    float up[3];
-    float right[3];
-    float world_up[3];
-    float yaw;
-    float pitch;
-    float fov;
+    vec3 position;
+    vec3 front;
+    vec3 up;
+    vec3 right;
+    vec3 world_up;
+    f32 yaw;
+    f32 pitch;
+    f32 fov;
+    f32 speed;
 } Camera;
 
 typedef enum {
@@ -23,7 +26,6 @@ typedef enum {
 } Camera_Movement;
 
 void camera_init(Camera* camera, float fov, float aspect_ratio, float near_plane, float far_plane);
-void camera_update(Camera* camera, float delta_time);
 void camera_process_keyboard(Camera* camera, Camera_Movement cameraMovement, float delta_time);
 void camera_process_mouse_movement(Camera* camera, float x_offset, float y_offset);
 void camera_update_vectors(Camera* camera);

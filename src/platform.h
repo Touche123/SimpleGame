@@ -2,7 +2,7 @@
 #define PLATORM_H
 
 #include <windows.h>
-#include "defines.h"
+#include "core.h"
 
 void platform_find_file(char* path);
 HANDLE platform_register_watch_directory(char* path);

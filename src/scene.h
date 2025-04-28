@@ -2,7 +2,7 @@
 #define SCENE_H
 
 #include "entity.h"
-#include "defines.h"
+#include "core.h"
 
 #define MAX_ENTITIES 1024
 
