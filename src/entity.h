@@ -1,6 +1,8 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include <cglm/cglm.h>
+
 #include "model.h"
 
 typedef struct {
@@ -15,4 +17,5 @@ typedef struct {
     Transform transform;
 } Entity;
 
+void entity_get_model_matrix(Entity* e, mat4 out);
 #endif

@@ -9,7 +9,7 @@ typedef struct Shader {
 } Shader;
 
 unsigned int shader_compile(const char* vertex_source, const char* fragment_source);
-char* shader_read_file(const char* filename);
+char* shader_read_file(const char* filename, size_t* size_out);
 void shader_recompile(Shader* shader);
 void shader_use(Shader* shader);
 void shader_uniform1i(Shader* shader, const char* name, int value);

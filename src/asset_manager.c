@@ -4,16 +4,6 @@
 
 #define MAX_ASSETS 128
 
-typedef struct MaterialAsset {
-    char name[128];
-    Material material;
-} MaterialAsset;
-
-typedef struct TextureAsset {
-    char name[128];
-    Texture texture;
-} TextureAsset;
-
 static MaterialAsset material_assets[MAX_ASSETS];
 static int material_asset_count = 0;
 
@@ -67,6 +57,22 @@ Material* asset_get_material(const char* name) {
     return &asset->material;
 }
 
+ModelAsset* asset_create_model_empty(const char* name) {
+    for (int i = 0; i < model_asset_count; ++i) {
+        if (strcmp(model_assets[i].name, name) == 0) {
+            return &model_assets[i];
+        }
+    }
+
+    if (model_asset_count >= MAX_ASSETS) return NULL;
+
+    ModelAsset* asset = &model_assets[model_asset_count++];
+    strncpy(asset->name, name, sizeof(asset->name));
+    asset->name[sizeof(asset->name) - 1] = '\0';
+
+    return asset;
+}
+
 ModelAsset* asset_get_model(const char* name) {
     for (int i = 0; i < model_asset_count; ++i) {
         if (strcmp(model_assets[i].name, name) == 0) {
@@ -106,8 +112,8 @@ ShaderAsset* asset_get_shader(const char* name) {
 
     printf("vs path: %s\n", asset->vs_path);
     printf("fs path: %s\n", asset->fs_path);
-    char* vss_path = shader_read_file(asset->vs_path);
-    char* fss_path = shader_read_file(asset->fs_path);
+    char* vss_path = shader_read_file(asset->vs_path, asset->vs_size);
+    char* fss_path = shader_read_file(asset->fs_path, asset->fs_size);
     asset->shader.id = shader_compile(asset->vs_path, asset->fs_path);
 
     asset->shader.vertex_shader_filename = asset->vs_path;
@@ -125,4 +131,46 @@ void asset_shader_load(void) {
 }
 
 void asset_material_load(void) {
+}
+
+TextureAsset* asset_get_texture(const char* name) {
+    for (int i = 0; i < texture_asset_count; ++i) {
+        if (strcmp(texture_assets[i].name, name) == 0) {
+            return &texture_assets[i].texture;
+        }
+    }
+
+    if (texture_asset_count >= MAX_ASSETS) return NULL;
+
+    GLuint texId = load_texture(name);
+    if (texId == 0) {
+        printf("[TextureAsset] Failed to load texture: %s\n", name);
+        return NULL;
+    }
+
+    TextureAsset* asset = &texture_assets[texture_asset_count++];
+    strncpy(asset->name, name, sizeof(asset->name));
+    // asset->texture.id = texId;
+    // asset->texture.width = 0;  // fyll i om du vill
+    // asset->texture.height = 0;
+
+    return &asset->texture;
+}
+
+GLuint asset_load_texture(const char* path) {
+    int width, height, comp;
+    unsigned char* image_data = stbi_load(path, &width, &height, &comp, 4);
+    if (!image_data) {
+        printf("[Error] Failed to load texture: %s\n", path);
+        return 0;
+    }
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(image_data);
+    return texture;
 }

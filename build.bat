@@ -2,10 +2,13 @@
 clang -g -Wextra -Wfloat-conversion -D_CRT_SECURE_NO_WARNINGS ^
 -DNOMINMAX ^
 src/core.c ^
+src/io/io_binary_streamreader.c ^
+src/io/io_binary_streamwriter.c ^
 src/scene.c ^
 src/camera.c ^
 src/glad.c ^
 src/mesh.c ^
+src/entity.c ^
 src/model.c ^
 src/shader.c ^
 src/asset_manager.c ^

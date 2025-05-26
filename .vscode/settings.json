@@ -8,6 +8,8 @@
         "os_windows.h": "c",
         "material.h": "c",
         "utility": "c",
-        "camera.h": "c"
+        "camera.h": "c",
+        "asset_manager.h": "c",
+        "xmemory": "c"
     }
 }

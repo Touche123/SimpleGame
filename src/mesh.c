@@ -36,5 +36,53 @@ void mesh_init(Mesh *mesh, Vertex *vertices, uint16_t *indices, size_t vertex_co
 
     glBindVertexArray(0);
 
+    mesh->vertex_count = vertex_count;
     mesh->index_count = index_count;
+
+    mesh->vertices = malloc(sizeof(Vertex) * mesh->vertex_count);
+    memcpy(mesh->vertices, vertices, sizeof(Vertex) * mesh->vertex_count);
+
+    mesh->indices = malloc(sizeof(uint16_t) * mesh->index_count);
+    memcpy(mesh->indices, indices, sizeof(uint16_t) * mesh->index_count);
+}
+
+void mesh_apply_material(Mesh *mesh, Shader *shader) {
+    shader_uniform1i(shader, "useAlbedoMap", mesh->material.albedoTexture ? 1 : 0);
+    shader_uniform1i(shader, "useMetallicMap", mesh->material.metallicTexture ? 1 : 0);
+    shader_uniform1i(shader, "useRoughnessMap", mesh->material.roughnessTexture ? 1 : 0);
+    shader_uniform1i(shader, "useAoMap", mesh->material.aoTexture ? 1 : 0);
+    shader_uniform1i(shader, "useNormalMap", mesh->material.useNormalMap ? 1 : 0);
+    shader_uniform3fv(shader, "albedoColor", mesh->material.albedoColor);
+    shader_uniform1f(shader, "metallicValue", mesh->material.metallicValue);
+    shader_uniform1f(shader, "roughnessValue", mesh->material.roughnessValue);
+    shader_uniform1f(shader, "aoValue", mesh->material.aoValue);
+
+    if (mesh->material.albedoTexture ? 1 : 0) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, mesh->material.albedoTexture);
+        glUniform1i(glGetUniformLocation(shader->id, "albedoMap"), 0);
+    }
+    if (mesh->material.metallicTexture ? 1 : 0) {
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, mesh->material.metallicTexture);
+        glUniform1i(glGetUniformLocation(shader->id, "metallicMap"), 1);
+    }
+    if (mesh->material.roughnessTexture ? 1 : 0) {
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, mesh->material.roughnessTexture);
+        glUniform1i(glGetUniformLocation(shader->id, "roughnessMap"), 2);
+    }
+    if (mesh->material.aoTexture ? 1 : 0) {
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, mesh->material.aoTexture);
+        glUniform1i(glGetUniformLocation(shader->id, "aoMap"), 3);
+    }
+    if (mesh->material.useNormalMap) {
+        glActiveTexture(GL_TEXTURE4);
+        glBindTexture(GL_TEXTURE_2D, mesh->material.normalTexture);
+        glUniform1i(glGetUniformLocation(shader->id, "normalMap"), 4);
+        glUniform1i(glGetUniformLocation(shader->id, "useNormalMap"), 1);
+    } else {
+        glUniform1i(glGetUniformLocation(shader->id, "useNormalMap"), 0);
+    }
 }

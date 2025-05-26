@@ -22,4 +22,5 @@ void os_init(void);
 bool os_events_iter_next(OsEvent* e);
 double os_windows_get_delta_time(void);
 double os_windows_update_delta_time(void);
+OsKey os_key_from_win32(WPARAM vk, LPARAM lparam);
 int game_main(int arc, char** argv);

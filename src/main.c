@@ -4,6 +4,8 @@
 #include "camera.h"
 #include "entity.h"
 #include "gpu/gpu_backend_opengl.h"
+#include "io/io_binary_streamreader.h"
+#include "io/io_binary_streamwriter.h"
 #include "os/os_windows.h"
 #include "scene.h"
 
@@ -18,53 +20,6 @@ struct SomeStruct {
 typedef struct {
     s32 id;
 } entity;
-
-typedef struct {
-    vec3 position;
-    vec3 color;
-    float intensity;
-} Light;
-
-void pbr_materials(Mesh* mesh, Shader* shader) {
-    shader_uniform1i(shader, "useAlbedoMap", mesh->material.albedoTexture ? 1 : 0);
-    shader_uniform1i(shader, "useMetallicMap", mesh->material.metallicTexture ? 1 : 0);
-    shader_uniform1i(shader, "useRoughnessMap", mesh->material.roughnessTexture ? 1 : 0);
-    shader_uniform1i(shader, "useAoMap", mesh->material.aoTexture ? 1 : 0);
-    shader_uniform1i(shader, "useNormalMap", mesh->material.useNormalMap ? 1 : 0);
-    shader_uniform3fv(shader, "albedoColor", mesh->material.albedoColor);
-    shader_uniform1f(shader, "metallicValue", mesh->material.metallicValue);
-    shader_uniform1f(shader, "roughnessValue", mesh->material.roughnessValue);
-    shader_uniform1f(shader, "aoValue", mesh->material.aoValue);
-
-    if (mesh->material.albedoTexture ? 1 : 0) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, mesh->material.albedoTexture);
-        glUniform1i(glGetUniformLocation(shader->id, "albedoMap"), 0);
-    }
-    if (mesh->material.metallicTexture ? 1 : 0) {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, mesh->material.metallicTexture);
-        glUniform1i(glGetUniformLocation(shader->id, "metallicMap"), 1);
-    }
-    if (mesh->material.roughnessTexture ? 1 : 0) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, mesh->material.roughnessTexture);
-        glUniform1i(glGetUniformLocation(shader->id, "roughnessMap"), 2);
-    }
-    if (mesh->material.aoTexture ? 1 : 0) {
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, mesh->material.aoTexture);
-        glUniform1i(glGetUniformLocation(shader->id, "aoMap"), 3);
-    }
-    if (mesh->material.useNormalMap) {
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, mesh->material.normalTexture);
-        glUniform1i(glGetUniformLocation(shader->id, "normalMap"), 4);
-        glUniform1i(glGetUniformLocation(shader->id, "useNormalMap"), 1);
-    } else {
-        glUniform1i(glGetUniformLocation(shader->id, "useNormalMap"), 0);
-    }
-}
 
 f32 direction[3] = {0.0f, 0.0f, 0.0f};
 bool keys[1024] = {false};
@@ -90,6 +45,14 @@ int game_main() {
     Entity* test_entity2 = scene_create_entity(&scene, &modelAsset_plane->model);
     Entity* test_entity5 = scene_create_entity(&scene, &modelAsset_barrel->model);
 
+    Light* point_light = scene_create_light(&scene, (vec3){5.0f, 5.0f, 5.0f}, (vec3){1.0f, 1.0f, 1.0f}, 500.0f);
+    Light* point_light2 = scene_create_light(&scene, (vec3){10.0f, 0.0f, 5.0f}, (vec3){1.0f, 0.0f, 0.0f}, 500.0f);
+    // Light light = {
+    //         .position = {5.0f, 5.0f, 5.0f},
+    //         .color = {1.0f, 1.0f, 1.0f},
+    //         .intensity = 500.0f,
+    //     };
+
     mat4 view, projection;
 
     glm_mat4_identity(view);
@@ -114,7 +77,7 @@ int game_main() {
     bool keys[256] = {0};
     bool mousecursor_enabled = false;
     camera.speed = 2.5f;
-
+    float totalTime = 0.0f;
     while (running) {
         os_windows_update_delta_time();
 
@@ -130,7 +93,7 @@ int game_main() {
                     break;
                 case OS_EVENT_TYPE_KEY_RELEASED:
                     keys[event.key] = false;
-                    if (event.key == 27) {
+                    if (event.key == OS_KEY_ESCAPE) {
                         mousecursor_enabled = !mousecursor_enabled;
                         os_mouse_show(mousecursor_enabled);
                         break;
@@ -152,26 +115,26 @@ int game_main() {
             }
         }
 
-        if (keys[87]) {  // W
+        if (keys[OS_KEY_W]) {
             camera_process_keyboard(&camera, CAMERA_FORWARD, os_windows_get_delta_time());
         }
-        if (keys[83]) {  // S
+        if (keys[OS_KEY_S]) {
             camera_process_keyboard(&camera, CAMERA_BACKWARD, os_windows_get_delta_time());
         }
-        if (keys[65]) {  // A
+        if (keys[OS_KEY_A]) {
             camera_process_keyboard(&camera, CAMERA_LEFT, os_windows_get_delta_time());
         }
-        if (keys[68]) {  // D
+        if (keys[OS_KEY_D]) {
             camera_process_keyboard(&camera, CAMERA_RIGHT, os_windows_get_delta_time());
         }
-        if (keys[32] || keys[69]) {  // SPACE or E
+        if (keys[OS_KEY_SPACE] || keys[OS_KEY_E]) {
             camera_process_keyboard(&camera, CAMERA_UP, os_windows_get_delta_time());
         }
-        if (keys[17] || keys[81]) {  // CTRL or Q
+        if (keys[OS_KEY_LCTRL] || keys[OS_KEY_Q]) {
             camera_process_keyboard(&camera, CAMERA_DOWN, os_windows_get_delta_time());
         }
 
-        if (keys[16]) {  // D
+        if (keys[OS_KEY_LSHIFT]) {
             camera.speed = 25.0f;
         } else {
             camera.speed = 5.0f;
@@ -187,19 +150,9 @@ int game_main() {
         ShaderAsset* testAsset = asset_get_shader("default");
         shader_use(&testAsset->shader.id);
 
-        Light light = {
-            .position = {5.0f, 5.0f, 5.0f},
-            .color = {1.0f, 1.0f, 1.0f},
-            .intensity = 500.0f,
-        };
-
-        shader_uniform3fv(&shaderAsset->shader, "lightPos", light.position);
-        shader_uniform3fv(&shaderAsset->shader, "lightColor", light.color);
-        shader_uniform1f(&shaderAsset->shader, "lightIntensity", light.intensity);
         shader_uniform3fv(&shaderAsset->shader, "camPos", camera.position);
         shader_uniform1f(&shaderAsset->shader, "exposure", 1.0f);
 
-        mat4 rotation, scale;
         shader_uniformMatrix4fv(&shaderAsset->shader, "view", view[0]);
         shader_uniformMatrix4fv(&shaderAsset->shader, "projection", projection[0]);
 
@@ -210,25 +163,44 @@ int game_main() {
         if (rotation_angle_y > 2.0f * 3.14159265f) rotation_angle_y -= 2.0f * 3.14159265f;
         if (rotation_angle_z > 2.0f * 3.14159265f) rotation_angle_z -= 2.0f * 3.14159265f;
 
-        int scene_idx;
-        for_range(scene_idx, 0, scene.count) {
-            Entity* e = &scene.entities[scene_idx];
+        vec3 basePos = {0.0f, 5.0f, 0.0f};
+        float animSpeed = 1.0f;    // varvtakt (t.ex. 1 radian per sekund)
+        float animRadius = 10.0f;  // hur långt från baspositionen
+        float dt = (float)os_windows_get_delta_time();
+        totalTime += dt;
+
+        point_light2->position[0] = basePos[0];
+        point_light2->position[1] = basePos[1];
+        point_light2->position[2] = basePos[2] + sinf(totalTime * animSpeed) * animRadius;
+
+        int scene_light_idx;
+        shader_uniform1i(&shaderAsset->shader, "lightCount", scene.light_count);
+
+        for_range(scene_light_idx, 0, scene.light_count) {
+            Light* light = &scene.lights[scene_light_idx];
+            char name[64];
+
+            sprintf(name, "lights[%d].position", scene_light_idx);
+            shader_uniform3fv(&shaderAsset->shader, name, light->position);
+
+            sprintf(name, "lights[%d].color", scene_light_idx);
+            shader_uniform3fv(&shaderAsset->shader, name, light->color);
+
+            sprintf(name, "lights[%d].intensity", scene_light_idx);
+            shader_uniform1f(&shaderAsset->shader, name, light->intensity);
+        }
+
+        int scene_entity_idx;
+        for_range(scene_entity_idx, 0, scene.entity_count) {
+            Entity* e = &scene.entities[scene_entity_idx];
             mat4 model_matrix;
-
-            glm_mat4_identity(model_matrix);
-            glm_mat4_identity(rotation);
-            glm_mat4_identity(scale);
-            glm_scale(scale, e->transform.scale);
-            glm_translate(model_matrix, e->transform.position);
-            glm_mul(model_matrix, scale, model_matrix);
-
+            entity_get_model_matrix(e, &model_matrix);
             shader_use(&testAsset->shader.id);
             shader_uniformMatrix4fv(&shaderAsset->shader, "model", model_matrix[0]);
             gpu_backend_opengl_set_framebuffer_size(800, 600);
             for (size_t m = 0; m < e->model->mesh_count; m++) {
                 Mesh* mesh = &e->model->meshes[m];
-
-                pbr_materials(mesh, &shaderAsset->shader);
+                mesh_apply_material(mesh, &shaderAsset->shader);
                 gpu_backend_opengl_render_mesh(mesh);
             }
         }

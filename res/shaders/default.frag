@@ -6,6 +6,17 @@ in vec3 Normal;
 in vec2 TexCoord;
 in mat3 TBN;
 
+#define MAX_LIGHTS 16
+
+struct Light {
+    vec3 position;
+    vec3 color;
+    float intensity;
+};
+
+uniform Light lights[MAX_LIGHTS];
+uniform int lightCount;
+
 uniform sampler2D albedoMap;
 uniform sampler2D metallicMap;
 uniform sampler2D roughnessMap;
@@ -23,9 +34,6 @@ uniform float metallicValue;
 uniform float roughnessValue;
 uniform float aoValue;
 
-uniform vec3 lightPos;
-uniform vec3 lightColor;
-uniform float lightIntensity;
 uniform vec3 camPos;
 uniform float exposure;
 
@@ -83,41 +91,45 @@ void main() {
     vec3 N = normalize(Normal);
     if (useNormalMap) {
         vec3 tangentNormal = texture(normalMap, TexCoord).rgb;
-        tangentNormal = tangentNormal * 2.0 - 1.0;  // [0,1] -> [-1,1]
-        N = normalize(TBN * tangentNormal);         // Transform to world space
+        tangentNormal = tangentNormal * 2.0 - 1.0;
+        N = normalize(TBN * tangentNormal);
     }
 
     vec3 V = normalize(camPos - FragPos);
-    vec3 L = normalize(lightPos - FragPos);
-    vec3 H = normalize(V + L);
 
-    float distance = length(lightPos - FragPos);
-    float attenuation = 1.0 / (distance * distance);
-    vec3 radiance = lightColor * attenuation * lightIntensity;
+    // Ackumulera ljusbidrag från alla lampor
+    vec3 Lo = vec3(0.0);
+    for (int i = 0; i < lightCount; ++i) {
+        vec3 L = normalize(lights[i].position - FragPos);
+        vec3 H = normalize(V + L);
 
-    float NDF = distributionGGX(N, H, roughness);
-    float G   = geometrySmith(N, V, L, roughness);
-    vec3 F0   = vec3(0.04);
-    F0 = mix(F0, albedo, metallic);
-    vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
+        float distance    = length(lights[i].position - FragPos);
+        float attenuation = 1.0 / (distance * distance);
+        vec3 radiance     = lights[i].color * lights[i].intensity * attenuation;
 
-    vec3 nominator    = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
-    vec3 specular     = nominator / denominator;
+        float NDF         = distributionGGX(N, H, roughness);
+        float G           = geometrySmith(N, V, L, roughness);
+        vec3 F0           = vec3(0.04);
+        F0               = mix(F0, albedo, metallic);
+        vec3 F            = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - metallic;
+        vec3 nominator    = NDF * G * F;
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001;
+        vec3 specular     = nominator / denominator;
 
-    float NdotL = max(dot(N, L), 0.0);
-    vec3 Lo = (kD * albedo / PI + specular) * radiance * NdotL;
+        vec3 kS = F;
+        vec3 kD = vec3(1.0) - kS;
+        kD      *= 1.0 - metallic;
+
+        float NdotL = max(dot(N, L), 0.0);
+        Lo       += (kD * albedo / PI + specular) * radiance * NdotL;
+    }
 
     vec3 ambient = vec3(0.03) * albedo * ao;
-
-    vec3 color = ambient + Lo;
+    vec3 color   = ambient + Lo;
 
     color = tonemapUncharted2(color * exposure);
-    color = pow(color, vec3(1.0 / 2.2));  // Gamma correction
+    color = pow(color, vec3(1.0 / 2.2));
 
     FragColor = vec4(color, 1.0);
 }

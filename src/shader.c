@@ -5,10 +5,11 @@
 #include "glad.h"
 #include "os/os_windows.h"
 
-char* shader_read_file(const char* filename) {
+char* shader_read_file(const char* filename, size_t* size_out) {
     void* data = NULL;
     uptr size = 0;
     if (os_file_read_all(filename, &data, &size)) {
+        if (size_out) *size_out = (size_t)size;
         return (char*)data;
     }
 
@@ -16,8 +17,8 @@ char* shader_read_file(const char* filename) {
 }
 
 unsigned int shader_compile(const char* vertex_filename, const char* fragment_filename) {
-    const char* vertex_src = shader_read_file(vertex_filename);
-    const char* fragment_src = shader_read_file(fragment_filename);
+    const char* vertex_src = shader_read_file(vertex_filename, NULL);
+    const char* fragment_src = shader_read_file(fragment_filename, NULL);
 
     u32 vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_src, NULL);

@@ -225,7 +225,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
             case WM_CHAR:
                 e->type = OS_EVENT_TYPE_KEY_TYPED;
-                e->key = wParam;
+                e->key = os_key_from_win32(wParam, lParam);
                 g_os_windows.e_out = NULL;
                 return 0;
 
@@ -236,13 +236,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
             case WM_KEYDOWN:
                 e->type = OS_EVENT_TYPE_KEY_PRESSED;
-                e->key = wParam;
+                e->key = os_key_from_win32(wParam, lParam);
                 g_os_windows.e_out = NULL;
                 return 0;
 
             case WM_KEYUP:
                 e->type = OS_EVENT_TYPE_KEY_RELEASED;
-                e->key = wParam;
+                e->key = os_key_from_win32(wParam, lParam);
                 g_os_windows.e_out = NULL;
                 return 0;
             case WM_MOUSEMOVE:
@@ -286,5 +286,157 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             default:
                 return DefWindowProcA(hwnd, msg, wParam, lParam);
         }
+    }
+}
+
+OsKey os_key_from_win32(WPARAM vk, LPARAM lparam) {
+    switch (vk) {
+        case VK_SHIFT: {
+            // Kolla om det är vänster eller höger shift
+            UINT scancode = (lparam >> 16) & 0xFF;
+            int extended = (lparam >> 24) & 1;
+            // Extended = höger shift är aldrig extended
+            int leftShiftScancode = MapVirtualKey(VK_LSHIFT, MAPVK_VK_TO_VSC);
+            if (scancode == leftShiftScancode) {
+                return OS_KEY_LSHIFT;
+            } else {
+                return OS_KEY_RSHIFT;
+            }
+        }
+        case VK_CONTROL: {
+            int extended = (lparam >> 24) & 1;
+            if (extended) {
+                return OS_KEY_RCTRL;
+            } else {
+                return OS_KEY_LCTRL;
+            }
+        }
+        case VK_MENU: {  // Alt
+            int extended = (lparam >> 24) & 1;
+            if (extended) {
+                return OS_KEY_RALT;
+            } else {
+                return OS_KEY_LALT;
+            }
+        }
+        case 'A':
+            return OS_KEY_A;
+        case 'B':
+            return OS_KEY_B;
+        case 'C':
+            return OS_KEY_C;
+        case 'D':
+            return OS_KEY_D;
+        case 'E':
+            return OS_KEY_E;
+        case 'F':
+            return OS_KEY_F;
+        case 'G':
+            return OS_KEY_G;
+        case 'H':
+            return OS_KEY_H;
+        case 'I':
+            return OS_KEY_I;
+        case 'J':
+            return OS_KEY_J;
+        case 'K':
+            return OS_KEY_K;
+        case 'L':
+            return OS_KEY_L;
+        case 'M':
+            return OS_KEY_M;
+        case 'N':
+            return OS_KEY_N;
+        case 'O':
+            return OS_KEY_O;
+        case 'P':
+            return OS_KEY_P;
+        case 'Q':
+            return OS_KEY_Q;
+        case 'R':
+            return OS_KEY_R;
+        case 'S':
+            return OS_KEY_S;
+        case 'T':
+            return OS_KEY_T;
+        case 'U':
+            return OS_KEY_U;
+        case 'V':
+            return OS_KEY_V;
+        case 'W':
+            return OS_KEY_W;
+        case 'X':
+            return OS_KEY_X;
+        case 'Y':
+            return OS_KEY_Y;
+        case 'Z':
+            return OS_KEY_Z;
+
+        case '0':
+            return OS_KEY_0;
+        case '1':
+            return OS_KEY_1;
+        case '2':
+            return OS_KEY_2;
+        case '3':
+            return OS_KEY_3;
+        case '4':
+            return OS_KEY_4;
+        case '5':
+            return OS_KEY_5;
+        case '6':
+            return OS_KEY_6;
+        case '7':
+            return OS_KEY_7;
+        case '8':
+            return OS_KEY_8;
+        case '9':
+            return OS_KEY_9;
+
+        case VK_ESCAPE:
+            return OS_KEY_ESCAPE;
+        case VK_SPACE:
+            return OS_KEY_SPACE;
+        case VK_RETURN:
+            return OS_KEY_ENTER;
+        case VK_TAB:
+            return OS_KEY_TAB;
+        case VK_BACK:
+            return OS_KEY_BACKSPACE;
+        case VK_LEFT:
+            return OS_KEY_LEFT;
+        case VK_RIGHT:
+            return OS_KEY_RIGHT;
+        case VK_UP:
+            return OS_KEY_UP;
+        case VK_DOWN:
+            return OS_KEY_DOWN;
+        case VK_F1:
+            return OS_KEY_F1;
+        case VK_F2:
+            return OS_KEY_F2;
+        case VK_F3:
+            return OS_KEY_F3;
+        case VK_F4:
+            return OS_KEY_F4;
+        case VK_F5:
+            return OS_KEY_F5;
+        case VK_F6:
+            return OS_KEY_F6;
+        case VK_F7:
+            return OS_KEY_F7;
+        case VK_F8:
+            return OS_KEY_F8;
+        case VK_F9:
+            return OS_KEY_F9;
+        case VK_F10:
+            return OS_KEY_F10;
+        case VK_F11:
+            return OS_KEY_F11;
+        case VK_F12:
+            return OS_KEY_F12;
+
+        default:
+            return OS_KEY_UNKNOWN;
     }
 }
