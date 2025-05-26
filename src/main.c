@@ -47,11 +47,6 @@ int game_main() {
 
     Light* point_light = scene_create_light(&scene, (vec3){5.0f, 5.0f, 5.0f}, (vec3){1.0f, 1.0f, 1.0f}, 500.0f);
     Light* point_light2 = scene_create_light(&scene, (vec3){10.0f, 0.0f, 5.0f}, (vec3){1.0f, 0.0f, 0.0f}, 500.0f);
-    // Light light = {
-    //         .position = {5.0f, 5.0f, 5.0f},
-    //         .color = {1.0f, 1.0f, 1.0f},
-    //         .intensity = 500.0f,
-    //     };
 
     mat4 view, projection;
 
@@ -71,13 +66,10 @@ int game_main() {
     glm_vec2_zero(vector);
 
     bool running = true;
-    float rotation_angle_x = 0.0f;
-    float rotation_angle_y = 0.0f;
-    float rotation_angle_z = 0.0f;
     bool keys[256] = {0};
     bool mousecursor_enabled = false;
     camera.speed = 2.5f;
-    float totalTime = 0.0f;
+
     while (running) {
         os_windows_update_delta_time();
 
@@ -155,23 +147,6 @@ int game_main() {
 
         shader_uniformMatrix4fv(&shaderAsset->shader, "view", view[0]);
         shader_uniformMatrix4fv(&shaderAsset->shader, "projection", projection[0]);
-
-        rotation_angle_x += 1.0f * os_windows_get_delta_time();
-        rotation_angle_y += 0.5f * os_windows_get_delta_time();
-        rotation_angle_z += 0.5f * os_windows_get_delta_time();
-        if (rotation_angle_x > 2.0f * 3.14159265f) rotation_angle_x -= 2.0f * 3.14159265f;
-        if (rotation_angle_y > 2.0f * 3.14159265f) rotation_angle_y -= 2.0f * 3.14159265f;
-        if (rotation_angle_z > 2.0f * 3.14159265f) rotation_angle_z -= 2.0f * 3.14159265f;
-
-        vec3 basePos = {0.0f, 5.0f, 0.0f};
-        float animSpeed = 1.0f;    // varvtakt (t.ex. 1 radian per sekund)
-        float animRadius = 10.0f;  // hur långt från baspositionen
-        float dt = (float)os_windows_get_delta_time();
-        totalTime += dt;
-
-        point_light2->position[0] = basePos[0];
-        point_light2->position[1] = basePos[1];
-        point_light2->position[2] = basePos[2] + sinf(totalTime * animSpeed) * animRadius;
 
         int scene_light_idx;
         shader_uniform1i(&shaderAsset->shader, "lightCount", scene.light_count);
