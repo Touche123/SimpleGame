@@ -275,7 +275,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
                 g_os_windows.e_out = NULL;
 
                 ClientToScreen(hwnd, &center);
-                SetCursorPos(center.x, center.y);
+                if (!os_mouse_enabled) {
+                    SetCursorPos(center.x, center.y);
+                }
                 return 0;
 
             default:

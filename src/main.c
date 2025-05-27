@@ -48,25 +48,10 @@ int game_main() {
     Light* point_light = scene_create_light(&scene, (vec3){5.0f, 5.0f, 5.0f}, (vec3){1.0f, 1.0f, 1.0f}, 500.0f);
     Light* point_light2 = scene_create_light(&scene, (vec3){10.0f, 0.0f, 5.0f}, (vec3){1.0f, 0.0f, 0.0f}, 500.0f);
 
-    mat4 view, projection;
-
-    glm_mat4_identity(view);
-    glm_perspective(TO_RADIANS(45.0f), (f32)SCREEN_WIDTH / (f32)SCREEN_HEIGHT, 0.1f, 1000.0f, projection);
-
-    vec3 light_direction[] = {-1.0f, -1.0f, -1.0f};
-    vec3 light_color[] = {1.0f, 1.0f, 1.0f};
-
-    vec4 white_pixel[] = {255, 255, 255, 255};
-
-    glEnable(GL_DEPTH_TEST);
     Camera camera = {0};
     camera_init(&camera, 45.0f, (f32)SCREEN_WIDTH / (f32)SCREEN_HEIGHT, 0.1f, 100.0f);
 
-    vec2 vector;
-    glm_vec2_zero(vector);
-
     bool running = true;
-    bool keys[256] = {0};
     bool mousecursor_enabled = false;
     camera.speed = 2.5f;
 
@@ -88,6 +73,7 @@ int game_main() {
                     if (event.key == OS_KEY_ESCAPE) {
                         mousecursor_enabled = !mousecursor_enabled;
                         os_mouse_show(mousecursor_enabled);
+                        camera_set_mouse_cursor_enabled(!mousecursor_enabled);
                         break;
                     }
                     break;
@@ -132,12 +118,7 @@ int game_main() {
             camera.speed = 5.0f;
         }
 
-        vec3 center = {
-            camera.position[0] + camera.front[0],
-            camera.position[1] + camera.front[1],
-            camera.position[2] + camera.front[2]};
-
-        glm_lookat(camera.position, center, camera.up, view);
+        camera_update(&camera, os_windows_get_delta_time());
         gpu_backend_opengl_prepare_frame();
         ShaderAsset* testAsset = asset_get_shader("default");
         shader_use(&testAsset->shader.id);
@@ -145,8 +126,8 @@ int game_main() {
         shader_uniform3fv(&shaderAsset->shader, "camPos", camera.position);
         shader_uniform1f(&shaderAsset->shader, "exposure", 1.0f);
 
-        shader_uniformMatrix4fv(&shaderAsset->shader, "view", view[0]);
-        shader_uniformMatrix4fv(&shaderAsset->shader, "projection", projection[0]);
+        shader_uniformMatrix4fv(&shaderAsset->shader, "view", camera_get_view_matrix(&camera));
+        shader_uniformMatrix4fv(&shaderAsset->shader, "projection", camera_get_projection_matrix(&camera));
 
         int scene_light_idx;
         shader_uniform1i(&shaderAsset->shader, "lightCount", scene.light_count);

@@ -14,6 +14,11 @@ typedef struct Camera {
     f32 pitch;
     f32 fov;
     f32 speed;
+    f32 aspect_ratio;
+    f32 near_plane;
+    f32 far_plane;
+    mat4 projection_matrix;
+    mat4 view_matrix;
 } Camera;
 
 typedef enum {
@@ -30,8 +35,10 @@ void camera_process_keyboard(Camera* camera, Camera_Movement cameraMovement, flo
 void camera_process_mouse_movement(Camera* camera, float x_offset, float y_offset);
 void camera_update_vectors(Camera* camera);
 // void camera_process_mouse_scroll(Camera* camera, float y_offset);
-// void camera_get_view_matrix(Camera* camera, float* view_matrix);
-// void camera_get_projection_matrix(Camera* camera, float* projection_matrix, float aspect_ratio, float near_plane, float far_plane);
+const float* camera_get_view_matrix(Camera* camera);
+void camera_set_mouse_cursor_enabled(bool enabled);
+const float* camera_get_projection_matrix(const Camera* camera);
+void camera_update(Camera* camera, float dt);
 // void camera_get_position(Camera* camera, float* position);
 // void camera_get_front(Camera* camera, float* front);
 // void camera_get_up(Camera* camera, float* up);

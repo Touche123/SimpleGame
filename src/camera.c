@@ -2,6 +2,8 @@
 
 #include "math.h"
 
+static bool mousecursor_enabled = true;
+
 void camera_init(Camera* camera, float fov, float aspect_ratio, float near_plane, float far_plane) {
     camera->position[0] = 0.0f;
     camera->position[1] = 0.0f;
@@ -26,6 +28,37 @@ void camera_init(Camera* camera, float fov, float aspect_ratio, float near_plane
     camera->yaw = -90.0f;  // Yaw is initialized to -90 degrees
     camera->pitch = 0.0f;  // Pitch is initialized to 0 degrees
     camera->fov = fov;
+
+    camera->aspect_ratio = aspect_ratio;
+    camera->near_plane = near_plane;
+    camera->far_plane = far_plane;
+}
+
+void camera_set_mouse_cursor_enabled(bool enabled) {
+    mousecursor_enabled = enabled;
+}
+
+const float* camera_get_view_matrix(Camera* camera) {
+    return (const float*)camera->view_matrix;
+}
+
+const float* camera_get_projection_matrix(const Camera* camera) {
+    return (const float*)camera->projection_matrix;
+    // glm_perspective(TO_RADIANS(camera->fov), camera->aspect_ratio, camera->near_plane, camera->far_plane, projection_matrix);
+}
+
+void camera_update(Camera* camera, float dt) {
+    // Update the projection matrix based on the current camera parameters
+    glm_perspective(TO_RADIANS(camera->fov), camera->aspect_ratio, camera->near_plane, camera->far_plane, camera->projection_matrix);
+    float center[3] = {
+        camera->position[0] + camera->front[0],
+        camera->position[1] + camera->front[1],
+        camera->position[2] + camera->front[2]};
+
+    glm_lookat(camera->position, center, camera->up, camera->view_matrix);
+
+    // Update the view matrix based on the current camera position and orientation
+    // camera_get_view_matrix(camera, camera->view_matrix);
 }
 
 void camera_process_keyboard(Camera* camera, Camera_Movement direction, float dt) {
@@ -70,6 +103,10 @@ void camera_set_position(Camera* camera, float x, float y, float z) {
 }
 
 void camera_process_mouse_movement(Camera* camera, float x_offset, float y_offset) {
+    if (!mousecursor_enabled) {
+        return;
+    }
+
     camera->yaw += x_offset;
     camera->pitch += y_offset;
 
