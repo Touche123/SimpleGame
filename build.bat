@@ -14,6 +14,7 @@ src/shader.c ^
 src/asset_manager.c ^
 src/os/os_windows.c ^
 src/gpu/gpu_backend_opengl.c ^
+src/gpu/gpu_backend_vulkan.c ^
 src/main.c ^
 
 -Ideps ^
