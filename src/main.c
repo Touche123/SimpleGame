@@ -81,11 +81,7 @@ int game_main() {
                     printf("window resize - width: %i, height: %i\n", event.window_size.window_width, event.window_size.window_height);
                     break;
                 case OS_EVENT_TYPE_MOUSE_MOVED:
-                    float sensitivity = 0.1f;
-                    float x_offset = (float)event.mouse_move.mouse_delta_x * sensitivity;
-                    float y_offset = (float)event.mouse_move.mouse_delta_y * sensitivity;
-
-                    camera_process_mouse_movement(&camera, x_offset, y_offset);
+                    camera_process_mouse_movement(&camera, event.mouse_move.mouse_delta_x, event.mouse_move.mouse_delta_y);
                     break;
                 case OS_EVENT_TYPE_WINDOW_CLOSED:
                     exit(0);

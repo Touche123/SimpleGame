@@ -3,6 +3,7 @@
 #include "math.h"
 
 static bool mousecursor_enabled = true;
+static f32 sensitivity = 0.1f;
 
 void camera_init(Camera* camera, float fov, float aspect_ratio, float near_plane, float far_plane) {
     camera->position[0] = 0.0f;
@@ -103,6 +104,9 @@ void camera_set_position(Camera* camera, float x, float y, float z) {
 }
 
 void camera_process_mouse_movement(Camera* camera, float x_offset, float y_offset) {
+    x_offset *= sensitivity;
+    y_offset *= sensitivity;
+
     if (!mousecursor_enabled) {
         return;
     }

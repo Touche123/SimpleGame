@@ -18,6 +18,7 @@
                 "src/io.c",
                 "src/camera.c",
                 "-I/deps/GLFW", // Lägg till sökvägen för GLFW headerfiler
+                "-IC:/VulkanSDK/1.4.309.0/Include/",
                 "-I/KHR",
                 "-L/deps/GLFW", // Lägg till sökvägen för GLFW bibliotek
                 "-lglfw3dll", // Länka mot GLFW
