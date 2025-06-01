@@ -3,6 +3,7 @@
 #include "asset_manager.h"
 #include "camera.h"
 #include "entity.h"
+#include "gpu/gpu_backend.h"
 #include "gpu/gpu_backend_opengl.h"
 #include "io/io_binary_streamreader.h"
 #include "io/io_binary_streamwriter.h"
@@ -28,10 +29,20 @@ double fps_timer = 0.0;
 int frame_count = 0;
 double fps = 0.0;
 
+#ifdef USE_VULKAN
+#define SELECT_VULKAN
+#else
+#define SELECT_OPENGL
+#endif
+
 int game_main() {
     os_init();
     OsWindowId window_id = os_window_open(800, 600);
-    gpu_backend_opengl_init(800, 600);
+
+    gpu.init = gpu_backend_opengl_init;
+
+    gpu.init(SCREEN_WIDTH, SCREEN_HEIGHT);
+    // gpu_backend_opengl_init(800, 600);
 
     ShaderAsset* shaderAsset = asset_get_shader("default");
     ShaderAsset* shaderAsset_brdf = asset_get_shader("brdf_lut");

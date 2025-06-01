@@ -1,8 +1,7 @@
 #include "gpu_backend_opengl.h"
 
-#include "../os/os_windows.h"
-// #include "glfw3.h"
 #include "../mesh.h"
+#include "../os/os_windows.h"
 #include "../shader.h"
 
 #define WGL_CONTEXT_MAJOR_VERSION_ARB 0x2091

@@ -7,7 +7,7 @@
 #include "../os/os_windows.h"
 #include "../shader.h"
 
-int gpu_backend_vulkan_init(int width, int height, OsWindowBackend window);
+int gpu_backend_vulkan_init(int width, int height);
 
 // Förbered ram: börja command buffer och render pass
 void gpu_backend_vulkan_prepare_frame();
